@@ -1,0 +1,13 @@
+# general configuration file
+# all keys in here can also be set using environment variables
+# using the flattend name and WK_ prefix
+# e.g. user.api_token becomes WK_USER_API_TOKEN
+
+[user]
+api_token='88d37140-b2c6-4610-b73b-0976f15dac80'
+
+[deck]
+name="Japanese::WaniKani"
+
+[cache]
+dir="./cache/"
