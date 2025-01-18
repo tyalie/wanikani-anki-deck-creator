@@ -1,4 +1,5 @@
-from dataclasses import dataclass, field, fields
+from dataclasses import KW_ONLY, dataclass, field, fields
+from .notes_parsers import rad_parse_from_wk
 
 @dataclass
 class Fields:
@@ -55,6 +56,20 @@ def get_note_metadata(deck, fields: MetadataFields):
     )
 
 
+######################
+###    subjects    ###
+######################
+
+@dataclass
+class SubjectFields(Fields):
+    """generall fields that should be supported in subjects"""
+    _: KW_ONLY
+    lesson_pos: int
+    follow_up_ids: list[int]
+    sub_id: int
+    url: str
+
+
 @dataclass
 class KanjiFields(Fields):
     Kanji: str
@@ -62,7 +77,6 @@ class KanjiFields(Fields):
     Reading_On: str
     Reading_Kun: str
     Radicals: str
-    Radicals_Icons: str
     Radicals_Names: str
     Radicals_Icons_Names: str
     Meaning_Mnemonic: str
@@ -81,17 +95,20 @@ def get_note_kanji(deck, fields: KanjiFields):
 
 
 @dataclass
-class RadicalFields(Fields):
-    Radical_Name: str
-    Radical: str
-    Radical_Meaning: str
-    Radical_Icon: str
-    sort_id: int
+class RadicalFields(SubjectFields):
+    radical_name: str
+    radical: str
+    radical_meaning: str
 
-def get_note_radical(deck, fields: RadicalFields):
+    @classmethod
+    def parse_from_wk(cls, subject: dict) -> "RadicalFields":
+        return RadicalFields(**rad_parse_from_wk(subject))
+
+def get_note_radical(deck, fields: RadicalFields, level: int):
     from .models import get_model_radical
     return Note(
         deck=deck,
         model=get_model_radical().name,
         fields=fields,
+        tags = [f"level{level}", f"radical"]
     )

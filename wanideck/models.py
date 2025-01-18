@@ -20,7 +20,10 @@ class Model():
     isCloze: bool = False
 
 def get_field_list(ds):
-    return [f.name for f in fields(ds)]
+    """get the list of all fields. kw_only fields come afterwards"""
+    std_fields = [f.name for f in fields(ds) if not f.kw_only]
+    kw_fields = [f.name for f in fields(ds) if f.kw_only]
+    return std_fields + kw_fields
 
 
 ######################

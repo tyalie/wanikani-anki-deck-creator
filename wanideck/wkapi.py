@@ -3,6 +3,7 @@ from datetime import datetime
 from datetime import timezone
 import time
 import logging
+import base64
 
 logger = logging.getLogger("api")
 logger.setLevel(logging.DEBUG)
@@ -93,3 +94,7 @@ class WaniKaniAPI:
             logging.warn("User is not subscriped to wanikani")
             return user["data"]["subscription"]["max_level_granted"]
 
+    def download_resource(self, url) -> str:
+        """Downloads resource and returns base64 string"""
+        r = self._do_request(endpoint=None, url=url)
+        return base64.b64encode(r.content).decode("ascii")

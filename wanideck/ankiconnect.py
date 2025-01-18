@@ -12,6 +12,31 @@ from .notes import Note, NoteMetadata, Fields
 logger = logging.getLogger("AnkiConnect")
 
 class AnkiConnect:
+    @ds.dataclass
+    class NewNote:
+        note: Note
+        audios: list | None = None
+        videos: list | None = None
+        pictures: list | None = None
+
+        def to_params(self):
+            params = dict(
+                deckName=self.note.deck,
+                modelName=self.note.model,
+                fields=self.note.fields.to_dict(),
+                options=ds.asdict(self.note.options),
+                tags=self.note.tags,
+            )
+
+            if self.audios is not None:
+                params["audio"] = self.audios
+            if self.videos is not None:
+                params["video"] = self.videos
+            if self.pictures is not None:
+                params["picture"] = self.pictures
+
+            return params
+
     def __init__(self, base_url: str = "http://127.0.0.1:8765") -> None:
         self._base_url = base_url
         pass
@@ -102,26 +127,11 @@ class AnkiConnect:
     def addModelTemplate(self, model: str, template: CardTemplate):
         self._invoke('modelTemplateAdd', modelName=model, template=ds.asdict(template))
 
-    def addNote(
-            self, note: Note,
-            audio: list | None = None, video: list | None = None, picture: list | None = None
-    ) -> int:
-        params = dict(
-            deckName=note.deck,
-            modelName=note.model,
-            fields=note.fields.to_dict(),
-            options=ds.asdict(note.options),
-            tags=note.tags,
-        )
+    def addNote(self, new_note: NewNote) -> int:
+        return self._invoke('addNote', note=new_note.to_params())
 
-        if audio is not None:
-            params["audio"] = audio
-        if video is not None:
-            params["video"] = video
-        if picture is not None:
-            params["picture"] = picture
-
-        return self._invoke('addNote', note=params)
+    def addNotes(self, new_notes: list[NewNote]):
+        return self._invoke('addNotes', notes=[n.to_params() for n in new_notes])
 
     def findNotes(self, query: str) -> list[int]:
         return self._invoke("findNotes", query=query)
@@ -129,7 +139,10 @@ class AnkiConnect:
     def suspend(self, cards: list[int]) -> bool:
         return self._invoke("suspend", cards=cards)
 
-    def updateNoteFields(self, id:int, fields: dict):
+    def updateNoteFields(self, id:int, fields: dict | Fields):
+        if isinstance(fields, Fields):
+            fields = fields.to_dict()
+
         params = dict(
             id=id,
             fields=fields
@@ -151,6 +164,17 @@ class AnkiConnect:
                 )
             ))
         return notes
+
+    def storeMediaFile(self, filename: str, data: str | None = None, path: str | None = None, url: str | None = None):
+        params = dict(filename=filename)
+        if data is not None:
+            params["data"] = data
+        if path is not None:
+            params["path"] = path
+        if url is not None:
+            params["url"] = url
+
+        self._invoke("storeMediaFile", **params)
 
 
 if __name__ == "__main__":

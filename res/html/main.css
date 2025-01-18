@@ -25,6 +25,11 @@ p { padding: 0; margin: 0; }
  align-items: center;
 }
 
+.kanji img {
+  height: 150px;
+  filter: invert(1);
+}
+
 .kanji.red { background-color:#e20096; }
 .kanji.purple { background-color: #a900fd; }
 .kanji.vocab { font-size: 15vw; }
@@ -54,25 +59,25 @@ hr { border: none; border-bottom: solid 1px #aaa; }
  font-size:150px;
 }
 
-.kanji-highlight {
+kanji {
   background-color: #e05eb5;
 }
 
-.reading-highlight {
+reading {
   background-color: #999;
 }
-.nightMode .reading-highlight {  background-color: #666; }
+.nightMode reading {  background-color: #666; }
 
-.radical-highlight {
+radical {
   background-color: #6cbde6;
 }
-.nightMode .radical-highlight { background-color: #29a4e3; } 
+.nightMode radical { background-color: #29a4e3; }
 
-.vocabulary-highlight {
+vocabulary {
   background-color: #a05ef7;
 }
 
-.kanji-highlight, .reading-highlight, .radical-highlight, .vocabulary-highlight {
+kanji, reading, radical, vocabulary {
   color: white;
   padding: 2px;
 }

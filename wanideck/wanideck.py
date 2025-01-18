@@ -1,4 +1,5 @@
-from wanideck.notes import MetadataFields, get_note_metadata
+from wanideck.notes import MetadataFields, RadicalFields, get_note_metadata, get_note_radical
+from wanideck.notes_parsers import rad_get_required_media_from_wk
 from .models import Model, get_model_kanji, get_model_metadata, get_model_radical
 from .config import Config
 from .wkapi import WaniKaniAPI
@@ -111,7 +112,7 @@ class WaniDeck:
 
         # create our card models for learning
         self._check_model(get_model_radical())
-        self._check_model(get_model_kanji())
+        #self._check_model(get_model_kanji())
 
         # create hidden card with model or update it
         try:
@@ -119,7 +120,7 @@ class WaniDeck:
         except AssertionError:
             logging.debug("Creating metadata card")
             metadata_note = get_note_metadata(self._get_anki_deck_name(), fields=MetadataFields(0))
-            id = self._anki_api.addNote(metadata_note)
+            id = self._anki_api.addNote(AnkiConnect.NewNote(metadata_note))
 
         note_info = self._anki_api.getNotesInfo([id])[0]
         # suspend the metadata card. it's only for us
@@ -138,21 +139,53 @@ class WaniDeck:
 
         # make sure we consider subscription
         max_level = self._wk_api.get_max_level()
-        max_level = 1
+        max_level = 4
 
         # first off get all new subjects
         subjects = self._wk_api.get_all_subjects(last_update_ts=last_update_ts, max_level=max_level)
 
         logging.info(f"Downloaded {len(subjects)} new subjects after ts {last_update_ts}")
 
-        new_rads = []
-        new_kanji = []
-        new_vocs = []
+        new_notes = []
+        new_medias = []
         # do postprocessing of subjects, this entails
         # - retrieving missing files (like audio or images that represent the radical)
         # - group subjects into categories
         for subject in subjects:
             # retrieve missing audio
             if subject["object"] == "radical":
-                breakpoint()
-            ...
+                fields = RadicalFields.parse_from_wk(subject)
+
+                # check if we need any media
+                media = rad_get_required_media_from_wk(subject)
+                if media is not None:
+                    media["data"] = self._wk_api.download_resource(media["url"])
+                    new_medias.append(media)
+
+                new_notes.append(AnkiConnect.NewNote(
+                    get_note_radical(self._get_anki_deck_name("Radicals"), fields, subject["data"]["level"]),
+                ))
+
+        # find already existing notes
+        unkonwn_notes = []
+        update_notes = []
+        for note in new_notes:
+            notes = self._anki_api.findNotes(f'"deck:{self._get_anki_deck_name()}" "url:{note.note.fields.url}"')
+            assert len(notes) <= 1, "WTF"
+
+            if len(notes) == 1:
+                update_notes.append((notes[0], note))
+            else:
+                unkonwn_notes.append(note)
+
+        logging.warning(f"Inserting {len(unkonwn_notes)} new notes")
+        for note in unkonwn_notes:
+            self._anki_api.addNote(note)
+
+        logging.warning(f"Updating {len(update_notes)} notes")
+        for id, note in update_notes:
+            self._anki_api.updateNoteFields(id, note.note.fields)
+
+        logging.warning(f"Adding {len(new_medias)} new media files (duplicates are overwritten)")
+        for media in new_medias:
+            self._anki_api.storeMediaFile(**media)
