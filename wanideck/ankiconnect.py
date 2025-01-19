@@ -136,6 +136,15 @@ class AnkiConnect:
     def findNotes(self, query: str) -> list[int]:
         return self._invoke("findNotes", query=query)
 
+    def findNote(self, query: str) -> int | None:
+        """Only returns one iff exactly one match was found, else None"""
+        notes = self.findNotes(query)
+        if len(notes) == 1:
+            return notes[0]
+        else:
+            logging.error(f"Found {len(notes)} matches. This is not a single match")
+            return None
+
     def suspend(self, cards: list[int]) -> bool:
         return self._invoke("suspend", cards=cards)
 
@@ -149,9 +158,15 @@ class AnkiConnect:
         )
         self._invoke("updateNoteFields", note=params)
 
-    def getNotesInfo(self, notes_id: list[int], fields: None | Type[Fields] = None) -> list[Note]:
+    def getNotesInfo(self, *, notes_id: list[int] | None = None, query: str | None = None, fields: None | Type[Fields] = None) -> list[Note]:
+        params = dict()
+        if notes_id is not None:
+            params["notes"] = notes_id
+        if query is not None:
+            params["query"] = query
+
         notes = []
-        for elem in self._invoke("notesInfo", notes=notes_id):
+        for elem in self._invoke("notesInfo", **params):
             notes.append(Note(
                 deck=None,
                 model=elem["modelName"],
@@ -160,7 +175,8 @@ class AnkiConnect:
                 metadata=NoteMetadata(
                     mod=elem["mod"],
                     cards=elem["cards"],
-                    profile=elem["profile"]
+                    profile=elem["profile"],
+                    note_id=elem["noteId"]
                 )
             ))
         return notes

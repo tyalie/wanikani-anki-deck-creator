@@ -4,13 +4,13 @@ from pathlib import Path
 
 RES_FOLDER = Path(__file__).parent / "../res/"
 
-@dataclass
+@dataclass(frozen=True)
 class CardTemplate:
     Name: str
     Front: str
     Back: str
 
-@dataclass
+@dataclass(frozen=True)
 class Model():
     name: str
     fields: list[str]
@@ -46,59 +46,5 @@ def get_model_metadata():
         name="metadata - wanideck",
         fields=get_field_list(MetadataFields),
         templates=[get_temp_hidden()]
-    )
-
-
-######################
-###      kanji     ###
-######################
-
-@cache
-def get_temp_kanji_recognition():
-    return CardTemplate(
-        Name = "Recognition",
-        Front = (RES_FOLDER / "html/kanji Model_Recognition_f.html").read_text(),
-        Back = (RES_FOLDER / "html/kanji Model_Recognition_b.html").read_text(),
-    )
-
-@cache
-def get_temp_kanji_reading():
-    return CardTemplate(
-        Name = "Reading",
-        Front = (RES_FOLDER / "html/kanji Model_Reading_f.html").read_text(),
-        Back = (RES_FOLDER / "html/kanji Model_Reading_b.html").read_text(),
-    )
-
-@cache
-def get_model_kanji():
-    from .notes import KanjiFields
-    return Model(
-        name="Kanji Model - wanideck",
-        fields=get_field_list(KanjiFields),
-        templates=[get_temp_kanji_recognition(), get_temp_kanji_reading()],
-        css = (RES_FOLDER / "html/main.css").read_text()
-    )
-
-
-######################
-###    radicals    ###
-######################
-
-@cache
-def get_temp_radical_recognition():
-    return CardTemplate(
-        Name = "Recognition",
-        Front = (RES_FOLDER / "html/radical Model_Recognition_f.html").read_text(),
-        Back = (RES_FOLDER / "html/radical Model_Recognition_b.html").read_text(),
-    )
-
-@cache
-def get_model_radical():
-    from .notes import RadicalFields
-    return Model(
-        name="Radical Model - wanideck",
-        fields=get_field_list(RadicalFields),
-        templates=[get_temp_radical_recognition()],
-        css = (RES_FOLDER / "html/main.css").read_text()
     )
 
