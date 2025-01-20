@@ -1,6 +1,8 @@
 from typing import Callable
 import dataclasses as ds
 
+from ..config import Config
+
 from ..models import RES_FOLDER, CardTemplate, Model, get_field_list
 from ..notes import Note
 
@@ -69,7 +71,7 @@ class RadicalSubject(SubjectBase):
         )
 
     @classmethod
-    def parse_wk_sub(cls, subject: dict) -> tuple[Callable[[str], Note], dict | None]:
+    def parse_wk_sub(cls, subject: dict, config: Config | None = None) ->  tuple[Callable[[str], Note], list[dict[str, str]] | None]:
         """parses fields and required media downloads"""
 
         fields = cls.Fields.from_subject(subject)
@@ -80,7 +82,7 @@ class RadicalSubject(SubjectBase):
         return fac, cls._get_req_media_from_sub(subject)
 
     @classmethod
-    def _get_req_media_from_sub(cls, subject: dict) -> dict | None:
+    def _get_req_media_from_sub(cls, subject: dict) -> list[dict[str, str]] | None:
         if subject["data"]["characters"] is not None:
             return None
 
@@ -90,9 +92,9 @@ class RadicalSubject(SubjectBase):
             s["content_type"] == "image/svg+xml"
         ]
 
-        return dict(
+        return [dict(
             filename=f"{cls.Fields.uniq_name_from_sub(subject)}.svg",
             url=svg_elem[0]["url"],
-        )
+        )]
 
 

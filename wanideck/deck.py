@@ -1,7 +1,7 @@
 import logging
 from typing import Callable
 
-from .subjects import RadicalSubject, KanjiSubject, SubjectBase
+from .subjects import RadicalSubject, KanjiSubject, SubjectBase, VocabSubject
 from .models import Model, get_model_metadata
 from .notes import MetadataFields, get_note_metadata, Note
 from .ankiconnect import AnkiConnect
@@ -55,6 +55,7 @@ class DeckBuilder:
         # create our card models for learning
         self.check_model(RadicalSubject.get_model())
         self.check_model(KanjiSubject.get_model())
+        self.check_model(VocabSubject.get_model())
 
         # create hidden card with model or update it
         try:

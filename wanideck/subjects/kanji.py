@@ -1,12 +1,9 @@
-from re import sub
 from typing import Callable
 import dataclasses as ds
-import json
-
-from .radical import RadicalSubject
 
 from ..models import RES_FOLDER, CardTemplate, Model, get_field_list
 from ..notes import Note
+from ..config import Config
 
 from .types import SubjectTypes
 
@@ -19,7 +16,6 @@ class KFields(SFields):
     reading_on: str
     reading_kun: str
 
-    components: list[int] | str
     radicals: list[str] | str
     radicals_names: list[str] | str
 
@@ -27,6 +23,7 @@ class KFields(SFields):
     meaning_hint: str
     reading_mnemonic: str
     reading_hint: str
+
 
     @classmethod
     def from_subject(cls, subject: dict) -> "KFields":
@@ -37,7 +34,6 @@ class KFields(SFields):
         params["reading_on"] = cls._get_meanread_list(subject["data"]["readings"], "onyomi")
         params["reading_kun"] = cls._get_meanread_list(subject["data"]["readings"], "kunyomi")
 
-        params["components"] = subject["data"]["component_subject_ids"]
         params["radicals"] = None
         params["radicals_names"] = None
 
@@ -51,27 +47,14 @@ class KFields(SFields):
         return cls(**params)
 
     def crossreference(self, cards_by_sub: dict[int, Note["SFields"]]) -> bool:
-        """use card database to complete card
-        return true if changes, false if unaffected"""
-        if not isinstance(self.components, list):
-            self.components = json.loads(self.components)
-
         old_radical = self.radicals
         old_radical_names = self.radicals_names
 
-        rads = []
-        for sub_id in self.components:
-            n = cards_by_sub[sub_id]
-            if isinstance(n.fields, RadicalSubject.Fields):
-                rads.append(n)
-
-        assert len(rads) == len(self.components), f"why are these two not same length??? {rads} vs. {self.components}"
-
-        self.radicals = ", ".join(rad.fields.radical for rad in rads)
-        self.radicals_names = ", ".join(rad.fields.radical_name for rad in rads)
+        self.radicals, self.radicals_names = self._reference_reqs(cards_by_sub)
 
         return (old_radical != self.radicals or
             old_radical_names != self.radicals_names)
+
 
 class KanjiSubject(SubjectBase):
     Fields = KFields
@@ -118,7 +101,7 @@ class KanjiSubject(SubjectBase):
         )
 
     @classmethod
-    def parse_wk_sub(cls, subject: dict) -> tuple[Callable[[str], Note], dict | None]:
+    def parse_wk_sub(cls, subject: dict, config: Config | None = None) ->  tuple[Callable[[str], Note], list[dict[str, str]] | None]:
         fields = cls.Fields.from_subject(subject)
         level = subject["data"]["level"]
         def fac(deck: str):

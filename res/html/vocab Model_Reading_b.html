@@ -1,69 +1,69 @@
 {{FrontSide}}
 <br>
 <div class="resume vocab">
-<div class="text mean"><b>Meaning:</b> <span>{{Vocab_Meaning}}</span></div>
+<div class="text mean"><b>Meaning:</b> <span>{{vocab_meaning}}</span></div>
 
 <div class="text hiragana" style="font-size: 20px">
-  <b>{{Reading}}</b>
+  <b>{{reading}}</b>
 </div>
 
 <br>
-{{#Speech_Type}}
-  <div class="text"><b>Type:</b> {{Speech_Type}}</div><br>
-{{/Speech_Type}}
-{{#Kanji}}
+{{#speech_type}}
+  <div class="text"><b>Type:</b> {{speech_type}}</div><br>
+{{/speech_type}}
+{{#kanjis}}
   <div class="text">
-    <b>Kanji:</b> <span class="hiragana"><font color="#e20096">{{Kanji}}</font></span> ({{Kanji_Name}})
+    <b>Kanji:</b> <span class="hiragana"><font color="#e20096">{{kanjis}}</font></span> ({{kanji_names}})
   </div>
   <br><hr><br>
-{{/Kanji}}
+{{/kanjis}}
 </div>
 
-{{#Reading_Exp}}
+{{#reading_exp}}
   <div class="text read">
     <u><b>Reading Mnemonic</b></u>
-    <br><br>{{Reading_Exp}}
+    <br><br>{{reading_exp}}
   </div>
   <br>
-{{/Reading_Exp}}
+{{/reading_exp}}
 
-{{#Meaning_Exp}}
+{{#meaning_exp}}
   <div class="text mean">
     <b><u>Meaning Explanation</u></b>
-    <br><br> {{Meaning_Exp}}
+    <br><br> {{meaning_exp}}
   </div>
   <br>
-{{/Meaning_Exp}}
+{{/meaning_exp}}
 
-{{#Context_jp}}
+{{#context_jp1}}
   <div class="text context">
     <u><b>Context Example</b></u>
       <br><br>
-    {{Context_jp}} ({{Context_en}})
+    {{context_jp1}} ({{context_en1}})
   </div>
-{{/Context_jp}}
+{{/context_jp1}}
 
-{{#Context_jp_2}}
+{{#context_jp2}}
   <div class="text context">
-    {{Context_jp_2}} ({{Context_en_2}})
+    {{context_jp2}} ({{context_en2}})
   </div>
-{{/Context_jp_2}}
+{{/context_jp2}}
 
-{{#Context_jp_3}}
+{{#context_jp3}}
   <div class="text context">
-    {{Context_jp_3}} ({{Context_en_3}})
+    {{context_jp3}} ({{context_en3}})
   </div>
-{{/Context_jp_3}}
+{{/context_jp3}}
 <br>
 
-{{Audio_g}}
+{{audio_f}}
 
 
 
 <!--    the code below is javascript to modify the type answer box, dont change anything below unless you know javascript  --!>
 
 
-<div id="correctAnswer" style="display:none">{{Reading}}</div>
+<div id="correctAnswer" style="display:none">{{reading}}</div>
 
 
 <script>

@@ -1,6 +1,4 @@
-from typing import Any
-from wanideck.subjects.kanji import KanjiSubject
-from .subjects import RadicalSubject, SubjectTypes
+from .subjects import RadicalSubject, SubjectTypes, KanjiSubject, VocabSubject
 from .deck import DeckBuilder
 from .notes import MetadataFields, Note
 from .config import Config
@@ -38,7 +36,7 @@ class WaniDeck:
 
         # make sure we consider subscription
         max_level = self._wk_api.get_max_level()
-        max_level = 4
+        max_level = 1
 
         # first off get all new subjects
         subjects = self._wk_api.get_all_subjects(last_update_ts=last_update_ts, max_level=max_level)
@@ -52,25 +50,19 @@ class WaniDeck:
         # - group subjects into categories
         for subject in subjects:
             # retrieve missing audio
-            if subject["object"] == "radical":
-                fn_note, media = RadicalSubject.parse_wk_sub(subject)
+            for stype in SubjectTypes:
+                if subject["object"] == stype.object_name:
+                    fn_note, medias = stype.to_cls().parse_wk_sub(subject, self._config)
 
-                # check if we need any media
-                if media is not None:
-                    media["data"] = self._wk_api.download_resource(media["url"])
-                    new_medias.append(media)
+                    # check if we need any media
+                    if medias is not None:
+                        for media in medias:
+                            media["data"] = self._wk_api.download_resource(media["url"])
+                            new_medias.append(media)
 
-                new_notes.append(
-                    self._deck.complete_note(SubjectTypes.RADICALS, fn_note)
-                )
-
-            if subject["object"] == "kanji":
-                fn_note, _ = KanjiSubject.parse_wk_sub(subject)
-
-                new_notes.append(
-                    self._deck.complete_note(SubjectTypes.KANJI, fn_note)
-                )
-
+                    new_notes.append(
+                        self._deck.complete_note(stype, fn_note)
+                    )
 
         self._deck.add_or_update_new_notes(new_notes)
 

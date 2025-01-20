@@ -1,11 +1,16 @@
 import abc
 import dataclasses as ds
 from typing import Callable, Generic, TypeVar, Any
+import json
+import logging
 
 from .types import SubjectTypes
 
 from ..models import Model
 from ..notes import Fields, Note
+from ..config import Config
+
+logger = logging.getLogger("Subjects")
 
 @ds.dataclass
 class SFields(Fields):
@@ -13,6 +18,7 @@ class SFields(Fields):
     _: ds.KW_ONLY
     lesson_pos: int
     follow_up_ids: list[int]
+    requirement_ids: list[int]
     sub_id: int
     url: str
 
@@ -30,6 +36,7 @@ class SFields(Fields):
         params["url"] = subject["object"] + "/" + subject["data"]["slug"]
 
         params["follow_up_ids"] = subject["data"].get("amalgamation_subject_ids", [])
+        params["requirement_ids"] = subject["data"].get("component_subject_ids", [])
 
         return SFields(**params)
 
@@ -61,6 +68,24 @@ class SFields(Fields):
         return true if changes, false if unaffected"""
         return False
 
+    def _reference_reqs(self, cards_by_sub: dict[int, Note["SFields"]]) -> tuple[str, str]:
+        from . import RadicalSubject, KanjiSubject
+
+        if not isinstance(self.requirement_ids, list):
+            self.requirement_ids = json.loads(self.requirement_ids)
+
+        syms, sym_names = [], []
+        for sub_id in self.requirement_ids:
+            if isinstance(f := cards_by_sub[sub_id].fields, RadicalSubject.Fields):
+                syms.append(f.radical)
+                sym_names.append(f.radical_name)
+            if isinstance(f := cards_by_sub[sub_id].fields, KanjiSubject.Fields):
+                syms.append(f.kanji)
+                sym_names.append(f.kanji_meaning)
+
+        assert len(syms) == len(self.requirement_ids), f"why are these two not same length??? {rads} vs. {self.components}"
+        return ", ".join(syms), ", ".join(sym_names)
+
 
 TFields = TypeVar("TFields", bound="SFields")
 
@@ -76,7 +101,7 @@ class SubjectBase(abc.ABC, Generic[TFields]):
 
     @classmethod
     @abc.abstractmethod
-    def get_types(cls) -> SubjectTypes:
+    def get_type(cls) -> SubjectTypes:
         ...
 
     @classmethod
@@ -92,7 +117,7 @@ class SubjectBase(abc.ABC, Generic[TFields]):
 
     @classmethod
     @abc.abstractmethod
-    def parse_wk_sub(cls, subject: dict) ->  tuple[Callable[[str], Note], dict | None]:
+    def parse_wk_sub(cls, subject: dict, config: Config | None = None) ->  tuple[Callable[[str], Note], list[dict[str, str]] | None]:
         """parses fields and required media downloads"""
         ...
 
