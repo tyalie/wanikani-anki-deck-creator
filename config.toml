@@ -8,6 +8,8 @@ api_token='88d37140-b2c6-4610-b73b-0976f15dac80'
 
 [deck]
 name="Japanese::WaniKani"
+audio_format="webm"
 
 [cache]
 dir="./cache/"
+

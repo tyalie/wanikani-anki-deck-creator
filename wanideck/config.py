@@ -2,14 +2,33 @@ import os
 import toml
 from pathlib import Path
 from dataclasses import dataclass, fields
+from enum import Enum
 
 @dataclass
 class Config:
+    class AudioFormats(Enum):
+        WEBM = "webm"
+        MPEG = "mpeg"
+
+        def __str__(self) -> str:
+            return "audio/" + self.value
+
+        @property
+        def fext(self) -> str:
+            """file extension"""
+            match self:
+                case self.WEBM:
+                    return "webm"
+                case self.MPEG:
+                    return "mpeg"
+
     user_api_token: str
 
     deck_name: str
+    deck_audio_format: AudioFormats
 
     cache_dir: Path
+
 
     @classmethod
     def load(cls, conf_file: str | Path) -> "Config":
