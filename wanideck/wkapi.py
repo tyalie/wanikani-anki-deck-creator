@@ -1,6 +1,5 @@
 import requests
 from datetime import datetime
-from datetime import timezone
 import time
 import logging
 import base64

@@ -3,7 +3,7 @@ from typing import Callable
 
 from .subjects import RadicalSubject, KanjiSubject, SubjectBase, VocabSubject
 from .models import Model, get_model_metadata
-from .notes import MetadataFields, get_note_metadata, Note
+from .notes import Card, MetadataFields, NoteMetadata, get_note_metadata, Note
 from .ankiconnect import AnkiConnect
 from .models import Model
 from .subjects import SubjectTypes
@@ -126,9 +126,11 @@ class DeckBuilder:
             logging.info(f"model: creating new model {model.name}")
             self._anki_api.createModel(model)
 
-    def add_or_update_new_notes(self, notes: list[Note]):
+    def add_or_update_new_notes(self, notes: list[Note]) -> list[int]:
         """Using a list of notes, identify new ones and already existing
-        ones (in Anki) and insert or update them accordingly"""
+        ones (in Anki) and insert or update them accordingly
+
+        returns list of ids of new notes"""
 
         unkonwn_notes = []
         update_notes = []
@@ -144,11 +146,13 @@ class DeckBuilder:
                 unkonwn_notes.append(note)
 
         logging.warning(f"Inserting {len(unkonwn_notes)} new notes")
-        self._anki_api.addNotes(unkonwn_notes)
+        new_note_ids = self._anki_api.addNotes(unkonwn_notes)
 
         logging.warning(f"Updating {len(update_notes)} notes")
         for id, note in update_notes:
             self._anki_api.updateNoteFields(id, note.note.fields)
+
+        return new_note_ids
 
     def update_notes(self, notes: list[tuple[int, Note]]):
         logging.warning(f"Updating {len(notes)} notes")
@@ -156,14 +160,13 @@ class DeckBuilder:
         for id, note in notes:
             self._anki_api.updateNoteFields(id, note.fields)
 
-
     def insert_media(self, medias: list[dict]):
         """Insert a list of medias into the deck"""
         logging.warning(f"Adding {len(medias)} new media files (duplicates are overwritten)")
         for media in medias:
             self._anki_api.storeMediaFile(**media)
 
-    def get_all(self) -> list[Note[SubjectBase.Fields]]:
+    def get_all_notes(self) -> list[Note[SubjectBase.Fields]]:
         """Get's all notes (and their details) from this deck from anki"""
         notes = []
         for stype in SubjectTypes:
@@ -176,3 +179,42 @@ class DeckBuilder:
             ))
 
         return notes
+
+    def get_all_cards(self, *, get_all_metainfo: bool = True) -> list[Card]:
+        ids = self._anki_api.findCards(query=f'"deck:{self._get_anki_deck_name()}" -("note:{get_model_metadata().name}" card:1)')
+        cards = self._anki_api.getCardsInfo(cards_id=ids)
+
+        if get_all_metainfo:
+            # get suspended state, as it is not in cardsInfo
+            sus_state = self._anki_api.areSuspended(ids)
+            # link corresponding notes
+            notes = {n.metadata.note_id: n for n in self.get_all_notes() if n.metadata is not None}
+
+            for card in cards:
+                try:
+                    card.is_suspended = sus_state[card.metadata.card_id]
+                    card.note = notes[card.metadata.note_id]
+                except Exception as e:
+                    raise Exception(f"Error processing card", card, e)
+
+        return cards
+
+    def unsuspend(self, card_ids: list[int]):
+        self._anki_api.unsuspend(card_ids)
+
+    def suspend(self, card_ids: list[int]):
+        self._anki_api.suspend(card_ids)
+
+    def suspend_all(self):
+        ids = self._anki_api.findCards(query=f'"deck:{self._get_anki_deck_name()}"')
+        self.suspend(ids)
+
+    def suspend_cards_from_notes(self, note_ids: list[int]):
+        cards = self.get_all_cards(get_all_metainfo=False)
+        card_ids = []
+
+        for card in cards:
+            if card.metadata.note_id in note_ids:
+                card_ids.append(card.metadata.card_id)
+
+        self._anki_api.suspend(card_ids)

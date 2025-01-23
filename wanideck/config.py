@@ -29,6 +29,9 @@ class Config:
 
     cache_dir: Path
 
+    # the amount of days required for stability for a card to be considered learned
+    learning_stability_req_for_learned_d: int
+
 
     @classmethod
     def load(cls, conf_file: str | Path) -> "Config":

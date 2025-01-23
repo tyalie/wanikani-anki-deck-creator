@@ -7,7 +7,7 @@ from typing import Any, Type
 import logging
 
 from .models import CardTemplate, Model
-from .notes import Note, NoteMetadata, Fields
+from .notes import Card, CardMemoryState, CardMetadata, Note, NoteMetadata, Fields
 
 logger = logging.getLogger("AnkiConnect")
 
@@ -46,7 +46,7 @@ class AnkiConnect:
 
     def _invoke(self, action: str, **params) -> Any:
         requestJson = json.dumps(self._request(action, **params)).encode('utf-8')
-        logger.debug(f"Requesting {action} to anki-connect (data={requestJson})")
+        logger.debug(f"Requesting {action} to anki-connect (data={requestJson[:100] + (requestJson[100:] and b'..')})")
         r = requests.get(self._base_url, data=requestJson)
 
         response = r.json()
@@ -136,6 +136,9 @@ class AnkiConnect:
     def findNotes(self, query: str) -> list[int]:
         return self._invoke("findNotes", query=query)
 
+    def findCards(self, query: str) -> list[int]:
+        return self._invoke("findCards", query=query)
+
     def findNote(self, query: str) -> int | None:
         """Only returns one iff exactly one match was found, else None"""
         notes = self.findNotes(query)
@@ -158,7 +161,10 @@ class AnkiConnect:
         )
         self._invoke("updateNoteFields", note=params)
 
-    def getNotesInfo(self, *, notes_id: list[int] | None = None, query: str | None = None, fields: None | Type[Fields] = None) -> list[Note]:
+    def getNotesInfo(
+            self, *, notes_id: list[int] | None = None, query: str | None = None,
+            fields: None | Type[Fields] = None
+        ) -> list[Note]:
         params = dict()
         if notes_id is not None:
             params["notes"] = notes_id
@@ -180,6 +186,40 @@ class AnkiConnect:
                 )
             ))
         return notes
+
+    def getCardsInfo(
+            self, *, cards_id: list[int],
+            fields: None | Type[Fields] = None
+        ) -> list[Card]:
+        cards = []
+        for elem in self._invoke("cardsInfo", cards=cards_id):
+            cards.append(Card(
+                deck=elem["deckName"],
+                model=elem["modelName"],
+                fields=elem["fields"] if fields is None else fields.from_dict(elem["fields"]),
+                memory_state=None if not elem["fsrs"] else CardMemoryState(
+                    stability=elem["fsrs"]["stability"],
+                    difficulty=elem["fsrs"]["difficulty"]
+                ),
+                metadata=CardMetadata(
+                    card_id=elem["cardId"],
+                    note_id=elem["note"]
+                ),
+
+                interval=int(elem["interval"]),
+                is_suspended=None,
+                note=None,
+            ))
+        return cards
+
+    def areSuspended(self, cards_id: list[int]) -> dict[int, bool]:
+        return dict(zip(cards_id, self._invoke("areSuspended", cards=cards_id)))
+
+    def unsuspend(self, cards_id: list[int]):
+        self._invoke("unsuspend", cards=cards_id)
+
+    def suspend(self, cards_id: list[int]):
+        self._invoke("suspend", cards=cards_id)
 
     def storeMediaFile(self, filename: str, data: str | None = None, path: str | None = None, url: str | None = None):
         params = dict(filename=filename)

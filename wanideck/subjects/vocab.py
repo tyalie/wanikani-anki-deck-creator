@@ -50,7 +50,7 @@ class VFields(SFields):
         params["vocab_meaning"] = cls._get_meanread_list(subject["data"]["meanings"])
         params["reading"] = cls._get_meanread_list(subject["data"]["readings"])
 
-        params["speech_type"] = subject["data"]["parts_of_speech"]
+        params["speech_type"] = cls._list_to_nat_list(subject["data"]["parts_of_speech"])
 
         for i, context in enumerate(subject["data"]["context_sentences"]):
             if i >= 3:

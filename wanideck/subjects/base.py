@@ -17,8 +17,8 @@ class SFields(Fields):
     """generall fields that should be supported in subjects"""
     _: ds.KW_ONLY
     lesson_pos: int
-    follow_up_ids: list[int]
-    requirement_ids: list[int]
+    follow_up_ids: list[int] | str
+    requirement_ids: list[int] | str
     sub_id: int
     url: str
 
@@ -71,8 +71,7 @@ class SFields(Fields):
     def _reference_reqs(self, cards_by_sub: dict[int, Note["SFields"]]) -> tuple[str, str]:
         from . import RadicalSubject, KanjiSubject
 
-        if not isinstance(self.requirement_ids, list):
-            self.requirement_ids = json.loads(self.requirement_ids)
+        self.requirement_ids = self.requirements
 
         syms, sym_names = [], []
         for sub_id in self.requirement_ids:
@@ -86,6 +85,12 @@ class SFields(Fields):
         assert len(syms) == len(self.requirement_ids), f"why are these two not same length??? {rads} vs. {self.components}"
         return ", ".join(syms), ", ".join(sym_names)
 
+    @property
+    def requirements(self) -> list[int]:
+        if isinstance(self.requirement_ids, list):
+            return self.requirement_ids
+        else:
+            return json.loads(self.requirement_ids)
 
 TFields = TypeVar("TFields", bound="SFields")
 

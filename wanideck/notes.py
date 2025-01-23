@@ -33,6 +33,17 @@ class NoteMetadata:
     profile: str
     note_id: int
 
+@dataclass
+class CardMetadata:
+    card_id: int
+    note_id: int
+
+@dataclass
+class CardMemoryState:
+    """FSRS memory state for a card"""
+    stability: float
+    difficulty: float
+
 T = TypeVar("T", bound=Fields)
 
 @dataclass
@@ -44,6 +55,26 @@ class Note(Generic[T]):
 
     options: NoteOptions = field(default_factory=NoteOptions)
     metadata: None | NoteMetadata = None
+
+    @property
+    def level(self) -> int | None:
+        """get level through tags (if it exists)"""
+        level_tag = list(filter(lambda s: s.startswith("level"), self.tags))
+        if len(level_tag) != 1:
+            return None
+        return int(level_tag[0][len("level"):])
+
+@dataclass
+class Card(Generic[T]):
+    deck: str
+    model: str
+    fields: T
+    is_suspended: bool | None
+    note: Note | None
+
+    metadata: CardMetadata
+    memory_state: CardMemoryState | None
+    interval: int
 
 
 @dataclass
@@ -57,4 +88,3 @@ def get_note_metadata(deck, fields: MetadataFields):
         model=get_model_metadata().name,
         fields=fields,
     )
-
