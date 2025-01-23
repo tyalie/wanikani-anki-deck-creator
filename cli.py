@@ -57,6 +57,9 @@ def main():
         case "progress":
             wanideck.process_progress()
 
+        case "syncuser":
+            wanideck.enter_wanikani_status_in_anki()
+
     if args.sync:
         wanideck.do_webanki_sync()
 

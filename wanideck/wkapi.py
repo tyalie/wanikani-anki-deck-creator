@@ -97,3 +97,9 @@ class WaniKaniAPI:
         """Downloads resource and returns base64 string"""
         r = self._do_request(endpoint=None, url=url)
         return base64.b64encode(r.content).decode("ascii")
+
+    def get_all_assignments(self) -> list[dict]:
+        """returns all subjects and their current srs stage + more"""
+        data, _ = self._do_request_paged("assignments")
+        logger.debug(f"go all assignments (len:{len(data)})")
+        return data

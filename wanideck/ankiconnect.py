@@ -221,6 +221,10 @@ class AnkiConnect:
     def suspend(self, cards_id: list[int]):
         self._invoke("suspend", cards=cards_id)
 
+    def setDueDate(self, cards_id: list[int], days: int, set_interval: bool):
+        """for days see anki-connect description"""
+        self._invoke("setDueDate", cards=cards_id, days=f"{days}{'!' * set_interval}")
+
     def storeMediaFile(self, filename: str, data: str | None = None, path: str | None = None, url: str | None = None):
         params = dict(filename=filename)
         if data is not None:

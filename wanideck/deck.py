@@ -218,3 +218,15 @@ class DeckBuilder:
                 card_ids.append(card.metadata.card_id)
 
         self._anki_api.suspend(card_ids)
+
+    def set_anki_due_from_subid(self, sub_with_due_d: dict[int, int], set_interval: bool = False):
+        cards = self.get_all_cards(get_all_metainfo=False)
+
+        for card in cards:
+            date = sub_with_due_d.get(int(card.fields["sub_id"]["value"]))
+
+            if date is None:
+                continue
+
+            self._anki_api.setDueDate([card.metadata.card_id], date, set_interval)
+
