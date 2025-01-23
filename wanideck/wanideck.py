@@ -1,6 +1,6 @@
 from .subjects import RadicalSubject, SubjectTypes, KanjiSubject, VocabSubject
 from .deck import DeckBuilder
-from .notes import Card, MetadataFields, Note
+from .notes import MetadataFields, Note
 from .config import Config
 from .wkapi import WaniKaniAPI
 from .ankiconnect import AnkiConnect
@@ -149,9 +149,9 @@ class WaniDeck:
                 continue
             if card.note.level != level:
                 continue
-            if KanjiSubject.get_type().name not in card.note.tags:
+            if KanjiSubject.get_type().name.lower() not in map(str.lower, card.note.tags):
                 continue
-            all_kanji_for_cur_level.append(card.fields["sub_id"])
+            all_kanji_for_cur_level.append(int(card.fields["sub_id"]["value"]))
 
         learned_kanjis = list(filter(lambda id: learned_subs[id], all_kanji_for_cur_level))
 
