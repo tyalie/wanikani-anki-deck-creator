@@ -60,6 +60,9 @@ class AnkiConnect:
             raise Exception(response['error'])
         return response['result']
 
+    def sync(self):
+        self._invoke("sync")
+
     def createDeck(self, deck: str) -> int:
         return int(self._invoke('createDeck', deck=deck))
 
@@ -147,9 +150,6 @@ class AnkiConnect:
         else:
             logging.error(f"Found {len(notes)} matches. This is not a single match")
             return None
-
-    def suspend(self, cards: list[int]) -> bool:
-        return self._invoke("suspend", cards=cards)
 
     def updateNoteFields(self, id:int, fields: dict | Fields):
         if isinstance(fields, Fields):

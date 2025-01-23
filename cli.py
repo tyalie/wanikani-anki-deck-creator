@@ -13,6 +13,7 @@ def build_parser():
     parser.add_argument("-c", "--config", default="./config.toml", help="Location to config toml")
     parser.add_argument("-v", "--verbose", default=0, action="count", help="Verbosity level (more -v -> more verbose)")
     parser.add_argument("--disable-suspend-new", action="store_true", help="Disable that new cards are disabled automatically")
+    parser.add_argument("--sync", action="store_true", help="Sync anki with ankiweb after commands finished")
 
     sub = parser.add_subparsers(required=True, dest='submodule')
 
@@ -55,6 +56,9 @@ def main():
 
         case "progress":
             wanideck.process_progress()
+
+    if args.sync:
+        wanideck.do_webanki_sync()
 
 if __name__ == "__main__":
     main()

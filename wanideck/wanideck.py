@@ -24,6 +24,9 @@ class WaniDeck:
         id = self._deck.get_metadata_note()
         self._anki_api.updateNoteFields(id, dict(last_update=str(last_update)))
 
+    def do_webanki_sync(self):
+        self._anki_api.sync()
+
     def create_deck(self):
         self._deck.create_deck()
 
