@@ -100,6 +100,8 @@ class WaniDeck:
         if should_suspend_new_cards:
             self._deck.suspend_cards_from_notes(new_note_ids)
 
+        self._deck.set_metadata_time(datetime.datetime.now())
+
     def process_progress(self):
         """
         In this step your anki process is evaluated and new cards are

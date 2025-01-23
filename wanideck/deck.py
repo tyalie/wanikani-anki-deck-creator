@@ -1,5 +1,6 @@
 import logging
 from typing import Callable
+from datetime import datetime
 
 from .subjects import RadicalSubject, KanjiSubject, SubjectBase, VocabSubject
 from .models import Model, get_model_metadata
@@ -36,6 +37,10 @@ class DeckBuilder:
         notes = self._anki_api.findNotes(f"\"deck:{self._get_anki_deck_name()}\" \"note:{get_model_metadata().name}\"")
         assert len(notes) == 1, "Why are there multiple cards with metadata model in this deck?"
         return notes[0]
+
+    def set_metadata_time(self, time: datetime):
+        mnote_id = self.get_metadata_note()
+        self._anki_api.updateNoteFields(mnote_id, dict(last_updated=int(time.timestamp())))
 
     def create_deck(self):
         """
