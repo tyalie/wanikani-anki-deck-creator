@@ -48,8 +48,12 @@ def main():
                 # do our first sync
                 wanideck.update_cards_from_wk(not args.disable_suspend_new)
 
+                # sync current status
+                wanideck.enter_wanikani_status_in_anki()
+
                 # unsuspend requirements
                 wanideck.process_progress()
+
 
         case "update":
             wanideck.update_cards_from_wk(not args.disable_suspend_new)
