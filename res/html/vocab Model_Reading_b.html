@@ -20,18 +20,26 @@
 </div>
 
 {{#reading_exp}}
-  <div class="text read">
-    <u><b>Reading Mnemonic</b></u>
-    <br><br>{{reading_exp}}
-  </div>
+  <details open="true">
+    <summary>Reading</summary>
+
+    <div class="text read">
+      <u><b>Reading Mnemonic</b></u>
+      <br><br>{{reading_exp}}
+    </div>
+  </details>
   <br>
 {{/reading_exp}}
 
 {{#meaning_exp}}
-  <div class="text mean">
-    <b><u>Meaning Explanation</u></b>
-    <br><br> {{meaning_exp}}
-  </div>
+  <details>
+    <summary>Meaning</summary>
+
+    <div class="text mean">
+      <b><u>Meaning Explanation</u></b>
+      <br><br> {{meaning_exp}}
+    </div>
+  </details>
   <br>
 {{/meaning_exp}}
 

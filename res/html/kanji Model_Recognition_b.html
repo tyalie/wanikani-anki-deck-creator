@@ -24,20 +24,30 @@
 </p>
 <br><hr><br>
 
-<div class="text mean">
-  <u><b>Meaning Mnemonic</b></u>
-  <br><br>
-  {{meaning_mnemonic}}
-  <br><br><i>{{meaning_hint}}</i>
-</div>
-<br>
-<div class="text read">
-  <u><b>Reading Mnemonic</b></u>
-  <br><br>
-  {{reading_mnemonic}}
-  <br><br>
-  <i>{{reading_hint}}</i>
-</div>
+<details open="true">
+  <summary>Meaning</summary>
+
+  <div class="text mean">
+    <u><b>Meaning Mnemonic</b></u>
+    <br><br>
+    {{meaning_mnemonic}}
+    <br><br><i>{{meaning_hint}}</i>
+  </div>
+</details>
+
+<details>
+  <summary>Reading</summary>
+
+  <div class="text read">
+    <u><b>Reading Mnemonic</b></u>
+    <br><br>
+    {{reading_mnemonic}}
+    <br><br>
+    <i>{{reading_hint}}</i>
+  </div>
+  <br>
+</details>
+
 
 <!--    the code below is javascript to modify the type answer box, dont change anything below unless you know javascript  --!>
 
