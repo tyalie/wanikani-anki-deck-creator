@@ -95,7 +95,6 @@ class WaniDeck:
 
         self._deck.update_notes(changed_notes)
 
-        breakpoint()
         # suspend all cards if required
         if should_suspend_new_cards:
             self._deck.suspend_cards_from_notes(new_note_ids)

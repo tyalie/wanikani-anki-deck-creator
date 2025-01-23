@@ -46,7 +46,7 @@ class AnkiConnect:
 
     def _invoke(self, action: str, **params) -> Any:
         requestJson = json.dumps(self._request(action, **params)).encode('utf-8')
-        logger.debug(f"Requesting {action} to anki-connect (data={requestJson[:100] + (requestJson[100:] and b'..')})")
+        logger.debug(f"Requesting {action} to anki-connect (data={requestJson[:150] + (requestJson[150:] and b'..')})")
         r = requests.get(self._base_url, data=requestJson)
 
         response = r.json()
