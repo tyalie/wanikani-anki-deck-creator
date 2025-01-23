@@ -1,3 +1,4 @@
+from base64 import b64encode
 import datetime
 import logging
 
@@ -31,7 +32,7 @@ class WaniDeck:
     def create_deck(self):
         self._deck.create_deck()
 
-    def update_cards_from_wk(self, should_suspend_new_cards: bool):
+    def update_cards_from_wk(self, should_suspend_new_cards: bool, insert_individually: bool):
         """
         This is for real now. Sync our cards from the WaniKani webpage
         """
@@ -78,7 +79,7 @@ class WaniDeck:
                         self._deck.complete_note(stype, fn_note)
                     )
 
-        new_note_ids = self._deck.add_or_update_new_notes(new_notes)
+        new_note_ids = self._deck.add_or_update_new_notes(new_notes, insert_individually)
 
         self._deck.insert_media(new_medias)
 

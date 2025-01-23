@@ -15,6 +15,8 @@ def build_parser():
     parser.add_argument("--disable-suspend-new", action="store_true", help="Disable that new cards are disabled automatically")
     parser.add_argument("--sync", action="store_true", help="Sync anki with ankiweb after commands finished")
 
+    parser.add_argument("--insert-individually", action="store_true", help="If set, each card will be inserted individually - helps debug problems but slower")
+
     sub = parser.add_subparsers(required=True, dest='submodule')
 
     init = sub.add_parser("init", help="initialize the anki deck")
@@ -46,7 +48,7 @@ def main():
 
             if not args.no_download:
                 # do our first sync
-                wanideck.update_cards_from_wk(not args.disable_suspend_new)
+                wanideck.update_cards_from_wk(not args.disable_suspend_new, args.insert_individually)
 
                 # sync current status
                 wanideck.enter_wanikani_status_in_anki()
@@ -56,7 +58,7 @@ def main():
 
 
         case "update":
-            wanideck.update_cards_from_wk(not args.disable_suspend_new)
+            wanideck.update_cards_from_wk(not args.disable_suspend_new, args.insert_individually)
 
         case "progress":
             wanideck.process_progress()

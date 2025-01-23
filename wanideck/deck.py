@@ -126,7 +126,7 @@ class DeckBuilder:
             logging.info(f"model: creating new model {model.name}")
             self._anki_api.createModel(model)
 
-    def add_or_update_new_notes(self, notes: list[Note]) -> list[int]:
+    def add_or_update_new_notes(self, notes: list[Note], add_individually: bool = False) -> list[int]:
         """Using a list of notes, identify new ones and already existing
         ones (in Anki) and insert or update them accordingly
 
@@ -134,19 +134,27 @@ class DeckBuilder:
 
         unkonwn_notes = []
         update_notes = []
+
+        all_notes_by_subid = {int(n.fields.sub_id): n for n in self.get_all_notes()}
         for note in notes:
             assert isinstance(note.fields, SubjectBase.Fields)
-            note_ids = self._anki_api.findNotes(f'"deck:{self._get_anki_deck_name()}" "url:{note.fields.url}"')
-            assert len(note_ids) <= 1, "WTF"
 
-            note = AnkiConnect.NewNote(note)
-            if len(note_ids) == 1:
-                update_notes.append((note_ids[0], note))
+            wnote = AnkiConnect.NewNote(note)
+            if note.fields.sub_id in all_notes_by_subid:
+                update_notes.append((
+                    all_notes_by_subid[note.fields.sub_id].metadata.note_id, wnote
+                ))
             else:
-                unkonwn_notes.append(note)
+                unkonwn_notes.append(wnote)
 
         logging.warning(f"Inserting {len(unkonwn_notes)} new notes")
-        new_note_ids = self._anki_api.addNotes(unkonwn_notes)
+
+        if add_individually:
+            new_note_ids = []
+            for un in unkonwn_notes:
+                new_note_ids.append(self._anki_api.addNote(un))
+        else:
+            new_note_ids = self._anki_api.addNotes(unkonwn_notes)
 
         logging.warning(f"Updating {len(update_notes)} notes")
         for id, note in update_notes:
