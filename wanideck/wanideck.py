@@ -40,7 +40,6 @@ class WaniDeck:
 
         # make sure we consider subscription
         max_level = self._wk_api.get_max_level()
-        max_level = 1
 
         # first off get all new subjects
         subjects = self._wk_api.get_all_subjects(last_update_ts=last_update_ts, max_level=max_level)
