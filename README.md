@@ -5,6 +5,9 @@ a cli interface. The cli also supports the unlock mechanism like wanikani does,
 but requires to be run frequently for this to work. It respects our
 subscription status (see `wanideck/subscription.py`).
 
+> [!IMPORTANT]
+> You need to set Anki to use FSRS for this to work.
+
 ## Requirements
 newest anki-connect in Anki
 
@@ -18,6 +21,9 @@ Execute
 ```
 ./cli.py init
 ```
+
+> [!NOTE] 
+> Now set the deck to use FSRS
 
 This will download the deck, your current progress and do the initial unlock
 phase. The Anki deck is usable afterward.
