@@ -75,6 +75,8 @@ class WaniKaniAPI:
         if max_level is not None:
             params["levels"] = list(range(1, max_level + 1))
 
+        params["hidden"] = "false"
+
         data, _ = self._do_request_paged("subjects", params=params)
         logger.debug(f"got all subjects (len:{len(data)})")
         return data
