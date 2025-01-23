@@ -93,10 +93,13 @@ class WaniKaniAPI:
             logging.warn("User is not subscriped to wanikani")
             return user["data"]["subscription"]["max_level_granted"]
 
-    def download_resource(self, url) -> str:
+    def download_resource(self, url, b64encode: bool = True) -> str | bytes:
         """Downloads resource and returns base64 string"""
         r = self._do_request(endpoint=None, url=url)
-        return base64.b64encode(r.content).decode("ascii")
+        if b64encode:
+            return base64.b64encode(r.content).decode("ascii")
+        else:
+            return r.content
 
     def get_all_assignments(self) -> list[dict]:
         """returns all subjects and their current srs stage + more"""

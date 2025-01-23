@@ -60,7 +60,18 @@ class WaniDeck:
                     # check if we need any media
                     if medias is not None:
                         for media in medias:
-                            media["data"] = self._wk_api.download_resource(media["url"])
+                            if not self._config.cache_dir.is_dir():
+                                logger.fatal(f"Invalid cache dir {self._config.cache_dir}. please make sure I can write/read from the folder")
+                                raise Exception("Invalid cache dir")
+
+                            media_file = self._config.cache_dir / media["filename"]
+                            if media_file.is_file():
+                                data: bytes = media_file.read_bytes()
+                            else:
+                                data: bytes = self._wk_api.download_resource(media["url"], False)
+                                media_file.write_bytes(data)
+
+                            media["data"] = b64encode(data).decode("ascii")
                             new_medias.append(media)
 
                     new_notes.append(
