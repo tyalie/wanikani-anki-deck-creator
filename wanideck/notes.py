@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field, fields
+from enum import Enum
 from typing import Generic, TypeVar
 
 @dataclass
@@ -79,7 +80,12 @@ class Card(Generic[T]):
 
 @dataclass
 class MetadataFields(Fields):
-    last_updated: int
+    last_updated_deck: str
+    last_updated_status: str
+
+    class Types(Enum):
+        DECK = "last_updated_deck"
+        STATUS = "last_updated_status"
 
 def get_note_metadata(deck, fields: MetadataFields):
     from .models import get_model_metadata

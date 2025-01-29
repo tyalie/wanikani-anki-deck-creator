@@ -103,8 +103,13 @@ class WaniKaniAPI:
         else:
             return r.content
 
-    def get_all_assignments(self) -> list[dict]:
+    def get_all_assignments(self, last_update_ts: int | None) -> list[dict]:
         """returns all subjects and their current srs stage + more"""
-        data, _ = self._do_request_paged("assignments")
+        params = {}
+        if last_update_ts is not None:
+            dt = datetime.utcfromtimestamp(last_update_ts)
+            params["updated_after"]= f"{dt.isoformat()}Z"
+
+        data, _ = self._do_request_paged("assignments", params=params)
         logger.debug(f"go all assignments (len:{len(data)})")
         return data

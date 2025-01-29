@@ -18,10 +18,6 @@ class WaniDeck:
         self._anki_api = AnkiConnect()
         self._deck = DeckBuilder(self._anki_api, self._config.deck_name)
 
-    def _get_last_update(self) -> int:
-        id = self._deck.get_metadata_note()
-        return int(self._anki_api.getNotesInfo(notes_id=[id], fields=MetadataFields)[0].fields.last_updated)
-
     def _update_metadata(self, last_update:int):
         id = self._deck.get_metadata_note()
         self._anki_api.updateNoteFields(id, dict(last_update=str(last_update)))
@@ -37,7 +33,7 @@ class WaniDeck:
         This is for real now. Sync our cards from the WaniKani webpage
         """
         # get last update
-        last_update_ts = self._get_last_update()
+        last_update_ts = self._deck.get_metadata_time(MetadataFields.Types.DECK)
 
         # make sure we consider subscription
         max_level = self._wk_api.get_max_level()
@@ -46,6 +42,9 @@ class WaniDeck:
         subjects = self._wk_api.get_all_subjects(last_update_ts=last_update_ts, max_level=max_level)
 
         logging.info(f"Downloaded {len(subjects)} new subjects after ts {last_update_ts}")
+
+        if len(subjects) == 0:
+            return
 
         new_notes: list[Note] = []
         new_medias = []
@@ -100,7 +99,7 @@ class WaniDeck:
         if should_suspend_new_cards:
             self._deck.suspend_cards_from_notes(new_note_ids)
 
-        self._deck.set_metadata_time(datetime.datetime.now())
+        self._deck.set_metadata_time(MetadataFields.Types.DECK, datetime.datetime.now())
 
     def process_progress(self):
         """
@@ -194,50 +193,56 @@ class WaniDeck:
     def enter_wanikani_status_in_anki(self):
         """WaniKani has assignemnts, which contain the sub_id and
         the current srs stage"""
-        assignments = self._wk_api.get_all_assignments()
+        last_update_ts = self._deck.get_metadata_time(MetadataFields.Types.STATUS)
+        assignments = self._wk_api.get_all_assignments(last_update_ts)
 
-        srs_mapping_to_days = [
-            0,
-            4/24, 8/24, 1, 2,  # apprentice
-            7, 14,  # guru
-            28,  # master
-            112,  # enlightend
-            182  # burned
-        ]
+        logger.warning(f"Got {len(assignments)} assignments since {last_update_ts} epoch")
 
-        sub_with_interval_and_due_d: dict[int, tuple[int, int]] = dict()
+        if len(assignments) > 0:
+            srs_mapping_to_days = [
+                0,
+                4/24, 8/24, 1, 2,  # apprentice
+                7, 14,  # guru
+                28,  # master
+                112,  # enlightend
+                182  # burned
+            ]
 
-        cur_time = datetime.datetime.now(tz=datetime.timezone.utc)
+            sub_with_interval_and_due_d: dict[int, tuple[int, int]] = dict()
 
-        for assignment in assignments:
-            sub_id = assignment["data"]["subject_id"]
-            interval_d = int(
-                srs_mapping_to_days[assignment["data"]["srs_stage"]]
+            cur_time = datetime.datetime.now(tz=datetime.timezone.utc)
+
+            for assignment in assignments:
+                sub_id = assignment["data"]["subject_id"]
+                interval_d = int(
+                    srs_mapping_to_days[assignment["data"]["srs_stage"]]
+                )
+
+                avail_at = assignment["data"]["available_at"]
+                if avail_at is None:
+                    due_in_d = interval_d
+                else:
+                    # python does not handle isoformat time with Z suffix correctly
+                    avail_at = datetime.datetime.fromisoformat(avail_at.replace("Z", "+00:00"))
+
+                    if avail_at < cur_time:
+                        due_in_d = 0
+                    else:
+                        due_in_d = (avail_at - cur_time).days
+
+                sub_with_interval_and_due_d[sub_id] = (interval_d, due_in_d)
+
+            # set out intervals
+            self._deck.set_anki_due_from_subid(
+                    {id: v[0] for id, v in sub_with_interval_and_due_d.items()},
+                    set_interval=True
             )
 
-            avail_at = assignment["data"]["available_at"]
-            if avail_at is None:
-                due_in_d = interval_d
-            else:
-                # python does not handle isoformat time with Z suffix correctly
-                avail_at = datetime.datetime.fromisoformat(avail_at.replace("Z", "+00:00"))
+            # schedule our cards
+            self._deck.set_anki_due_from_subid(
+                    {id: v[1] for id, v in sub_with_interval_and_due_d.items()},
+                    set_interval=False
+            )
 
-                if avail_at < cur_time:
-                    due_in_d = 0
-                else:
-                    due_in_d = (avail_at - cur_time).days
-
-            sub_with_interval_and_due_d[sub_id] = (interval_d, due_in_d)
-
-        # set out intervals
-        self._deck.set_anki_due_from_subid(
-                {id: v[0] for id, v in sub_with_interval_and_due_d.items()},
-                set_interval=True
-        )
-
-        # schedule our cards
-        self._deck.set_anki_due_from_subid(
-                {id: v[1] for id, v in sub_with_interval_and_due_d.items()},
-                set_interval=False
-        )
+        self._deck.set_metadata_time(MetadataFields.Types.DECK, datetime.datetime.now())
 

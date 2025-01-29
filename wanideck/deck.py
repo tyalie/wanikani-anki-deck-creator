@@ -4,7 +4,7 @@ from datetime import datetime
 
 from .subjects import RadicalSubject, KanjiSubject, SubjectBase, VocabSubject
 from .models import Model, get_model_metadata
-from .notes import Card, MetadataFields, NoteMetadata, get_note_metadata, Note
+from .notes import Card, MetadataFields, get_note_metadata, Note
 from .ankiconnect import AnkiConnect
 from .models import Model
 from .subjects import SubjectTypes
@@ -38,9 +38,15 @@ class DeckBuilder:
         assert len(notes) == 1, "Why are there multiple cards with metadata model in this deck?"
         return notes[0]
 
-    def set_metadata_time(self, time: datetime):
+    def set_metadata_time(self, ftype: MetadataFields.Types, time: datetime):
         mnote_id = self.get_metadata_note()
-        self._anki_api.updateNoteFields(mnote_id, dict(last_updated=str(int(time.timestamp()))))
+        fields = {ftype.value: str(int(time.timestamp()))}
+        self._anki_api.updateNoteFields(mnote_id, fields)
+
+    def get_metadata_time(self, ftype: MetadataFields.Types) -> int:
+        id = self.get_metadata_note()
+        note = self._anki_api.getNotesInfo(notes_id=[id], fields=MetadataFields)[0].fields
+        return int(getattr(note, ftype.value))
 
     def create_deck(self):
         """
