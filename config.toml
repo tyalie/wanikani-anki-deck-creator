@@ -14,4 +14,4 @@ audio_format="webm"
 dir="./cache/"
 
 [learning]
-stability_req_for_learned_d=4
+stability_req_for_learned_d=7
