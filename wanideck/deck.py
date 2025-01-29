@@ -40,7 +40,7 @@ class DeckBuilder:
 
     def set_metadata_time(self, time: datetime):
         mnote_id = self.get_metadata_note()
-        self._anki_api.updateNoteFields(mnote_id, dict(last_updated=int(time.timestamp())))
+        self._anki_api.updateNoteFields(mnote_id, dict(last_updated=str(int(time.timestamp()))))
 
     def create_deck(self):
         """
