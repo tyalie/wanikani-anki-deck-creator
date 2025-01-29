@@ -1,7 +1,7 @@
 {{FrontSide}}
 <br>
 <div class="resume vocab">
-<div class="text mean"><b>Meaning:</b> <span>{{vocab_meaning}}</span></div>
+<div class="text mean"><b>Meaning:</b> <span class="spoiler">{{vocab_meaning}}</span></div>
 
 <div class="text hiragana" style="font-size: 20px">
   <b>{{reading}}</b>
@@ -43,29 +43,31 @@
   <br>
 {{/meaning_exp}}
 
-{{#context_jp1}}
-  <div class="text context">
-    <u><b>Context Example</b></u>
-      <br><br>
-    {{context_jp1}} ({{context_en1}})
-  </div>
-{{/context_jp1}}
+<details>
+  <summary>Context Sentences</summary>
+  {{#context_jp1}}
+    <div class="text context">
+      <u><b>Context Example</b></u>
+        <br><br>
+      {{context_jp1}} ({{context_en1}})
+    </div>
+  {{/context_jp1}}
 
-{{#context_jp2}}
-  <div class="text context">
-    {{context_jp2}} ({{context_en2}})
-  </div>
-{{/context_jp2}}
+  {{#context_jp2}}
+    <div class="text context">
+      {{context_jp2}} ({{context_en2}})
+    </div>
+  {{/context_jp2}}
 
-{{#context_jp3}}
-  <div class="text context">
-    {{context_jp3}} ({{context_en3}})
-  </div>
-{{/context_jp3}}
+  {{#context_jp3}}
+    <div class="text context">
+      {{context_jp3}} ({{context_en3}})
+    </div>
+  {{/context_jp3}}
+</details>
 <br>
 
-{{audio_f}}
-
+<div class="autoplay">{{audio_f}}</div>
 
 
 <!--    the code below is javascript to modify the type answer box, dont change anything below unless you know javascript  --!>
@@ -133,4 +135,10 @@ for (var i = 0; i < mean.length; i++) {
  f.innerHTML =  e;
 };
 };
+
+// autoplay audio
+var elem = document.querySelector(".autoplay .soundLink, .autoplay .replaybutton");
+if (elem) {
+  elem.click();
+}
 </script>

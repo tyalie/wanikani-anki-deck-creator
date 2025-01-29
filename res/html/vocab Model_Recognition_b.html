@@ -4,7 +4,7 @@
 <div class="text mean"><b>Meaning:</b> <span>{{vocab_meaning}}</span></div>
 
 <div class="text hiragana" style="font-size: 20px">
-  <b>{{reading}}</b>
+  <b><span class="spoiler">{{reading}}</span></b>
 </div>
 
 <br>
@@ -43,28 +43,31 @@
   <br>
 {{/reading_exp}}
 
-{{#context_jp1}}
-  <div class="text context">
-    <u><b>Context Example</b></u>
-      <br><br>
-    {{context_jp1}} ({{context_en1}})
-  </div>
-{{/context_jp1}}
+<details open="true">
+  <summary>Context Sentences</summary>
+  {{#context_jp1}}
+    <div class="text context">
+      <u><b>Context Example</b></u>
+        <br><br>
+      {{context_jp1}} ({{context_en1}})
+    </div>
+  {{/context_jp1}}
 
-{{#context_jp2}}
-  <div class="text context">
-    {{context_jp2}} ({{context_en2}})
-  </div>
-{{/context_jp2}}
+  {{#context_jp2}}
+    <div class="text context">
+      {{context_jp2}} ({{context_en2}})
+    </div>
+  {{/context_jp2}}
 
-{{#context_jp3}}
-  <div class="text context">
-    {{context_jp3}} ({{context_en3}})
-  </div>
-{{/context_jp3}}
+  {{#context_jp3}}
+    <div class="text context">
+      {{context_jp3}} ({{context_en3}})
+    </div>
+  {{/context_jp3}}
+</details>
 <br>
 
-{{audio_f}}
+<div>{{audio_f}}</div>
 
 
 
